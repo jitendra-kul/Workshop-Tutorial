@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enzyme Engineering Studio — DBTL Workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #0F6E56;
+    --blue: #378ADD;
+    --blue-light: #E6F1FB;
+    --blue-dark: #185FA5;
+    --amber: #EF9F27;
+    --amber-light: #FAEEDA;
+    --amber-dark: #854F0B;
+    --pink-light: #FBEAF0;
+    --pink-dark: #72243E;
+    --gray-bg: #F7F6F3;
+    --gray-border: #E4E2DA;
+    --gray-text: #6B6A65;
+    --gray-hint: #A09E99;
+    --text: #1A1917;
+    --surface: #FFFFFF;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--gray-border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-dots { display: flex; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  nav h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .nav-credit {
+    font-size: 12px;
+    color: var(--gray-hint);
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0A1628 0%, #0F2A3E 60%, #0A2A1E 100%);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(29,158,117,0.2);
+    color: #5DCAA5;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .hero h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 8px; }
+  .hero p { font-size: 14px; color: rgba(255,255,255,0.65); max-width: 520px; line-height: 1.7; }
+  .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1.2rem; }
+  .hero-pill {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ── STEPS PROGRESS ── */
+  .progress-bar {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--gray-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .step-btn {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-text);
+    transition: all 0.2s;
+    border-right: 1px solid var(--gray-border);
+    position: relative;
+  }
+  .step-btn:last-child { border-right: none; }
+  .step-btn:hover { background: var(--gray-bg); color: var(--text); }
+  .step-btn.active { background: var(--green-light); color: var(--green-dark); }
+  .step-btn .step-num-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--gray-hint);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .step-btn.active .step-num-label { color: var(--green); }
+  .step-btn.done { background: var(--green-light); }
+  .step-btn.done::after {
+    content: '✓';
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 10px;
+    color: var(--green);
+  }
+
+  /* ── PANEL ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--gray-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gray-text);
+    margin-bottom: 1rem;
+  }
+
+  /* ── FORMS ── */
+  .form-row { margin-bottom: 1.1rem; }
+  label { font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px; }
+  .hint { font-size: 12px; color: var(--gray-hint); margin-top: 5px; line-height: 1.5; }
+  textarea, input[type=text], input[type=number], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  textarea:focus, input:focus, select:focus { border-color: var(--green); }
+  textarea { min-height: 100px; resize: vertical; font-family: 'DM Mono', monospace; font-size: 13px; }
+  input[type=number] { width: 110px; }
+  select { cursor: pointer; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── SEQ PREVIEW ── */
+  .seq-preview {
+    background: #F0FAF6;
+    border: 1px solid #9FE1CB;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-top: 12px;
+  }
+  .seq-stats { display: flex; gap: 24px; margin-bottom: 10px; flex-wrap: wrap; }
+  .seq-stat span:first-child { font-size: 11px; color: var(--gray-hint); display: block; }
+  .seq-stat span:last-child { font-size: 16px; font-weight: 600; color: var(--green-dark); }
+  .seq-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gray-text);
+    word-break: break-all;
+    line-height: 1.9;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  .seq-hot { color: var(--green-dark); font-weight: 600; background: rgba(29,158,117,0.12); border-radius: 2px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--gray-border);
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn:hover { background: var(--gray-bg); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--green); color: white; border-color: var(--green); }
+  .btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+
+  /* ── ALERTS ── */
+  .alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    border: 1px solid;
+  }
+  .alert-info { background: var(--blue-light); color: var(--blue-dark); border-color: #B5D4F4; }
+  .alert-success { background: var(--green-light); color: var(--green-dark); border-color: #9FE1CB; }
+  .alert-warning { background: var(--amber-light); color: var(--amber-dark); border-color: #FAC775; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-green { background: var(--green-light); color: var(--green-dark); }
+  .badge-blue  { background: var(--blue-light);  color: var(--blue-dark); }
+  .badge-amber { background: var(--amber-light); color: var(--amber-dark); }
+  .badge-gray  { background: #F1EFE8; color: #5F5E5A; }
+  .badge-pink  { background: var(--pink-light); color: var(--pink-dark); }
+
+  /* ── DBTL CYCLE GRID ── */
+  .dbtl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.2rem; }
+  .dbtl-box {
+    border: 1px solid var(--gray-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .dbtl-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    margin: 0 auto 8px;
+  }
+  .dbtl-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .dbtl-desc { font-size: 12px; color: var(--gray-text); line-height: 1.5; }
+
+  /* ── STEP LIST ── */
+  .step-list { list-style: none; }
+  .step-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-border); align-items: flex-start; }
+  .step-item:last-child { border-bottom: none; }
+  .step-circle {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step-item-title { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .step-item-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; }
+
+  /* ── ROUND PILLS ── */
+  .round-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .round-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--gray-border);
+    cursor: pointer;
+    color: var(--gray-text);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .round-pill:hover { border-color: var(--green); color: var(--green); }
+  .round-pill.active { background: var(--green); color: white; border-color: var(--green); }
+
+  /* ── MUTATION TABLE ── */
+  .mut-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mut-table th { padding: 9px 10px; text-align: left; font-size: 11px; font-weight: 500; color: var(--gray-hint); border-bottom: 1px solid var(--gray-border); text-transform: uppercase; letter-spacing: 0.4px; background: var(--gray-bg); }
+  .mut-table td { padding: 9px 10px; border-bottom: 1px solid var(--gray-border); }
+  .mut-table tr:last-child td { border-bottom: none; }
+  .mut-table tbody tr:hover td { background: #F9F8F5; }
+  .bar-wrap { width: 72px; height: 5px; background: var(--gray-border); border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 7px; }
+  .bar-fill { height: 5px; border-radius: 3px; background: var(--green); }
+  code { font-family: 'DM Mono', monospace; font-size: 12px; background: var(--blue-light); color: var(--blue-dark); padding: 1px 6px; border-radius: 4px; }
+
+  /* ── METRIC CARDS ── */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap: 10px; margin-bottom: 1.2rem; }
+  .metric { background: var(--gray-bg); border-radius: var(--radius-sm); padding: 14px 12px; text-align: center; }
+  .metric-val { font-size: 24px; font-weight: 600; }
+  .metric-label { font-size: 11px; color: var(--gray-hint); margin-top: 3px; }
+
+  /* ── SVG CHART ── */
+  .chart-wrap { background: var(--gray-bg); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
+
+  /* ── SUMMARY BOX ── */
+  .summary-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-border); align-items: flex-start; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 6px; }
+  .summary-key { font-size: 13px; font-weight: 500; min-width: 120px; }
+  .summary-val { font-size: 13px; color: var(--gray-text); }
+
+  /* ── CODE BOX ── */
+  .code-box {
+    background: #0A1628;
+    color: #9FE1CB;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    line-height: 2;
+    overflow-x: auto;
+  }
+  .code-comment { color: #555F70; }
+  .code-string { color: #FAC775; }
+  .code-key { color: #5DCAA5; }
+
+  /* ── COLAB BUTTON ── */
+  .colab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--amber-light);
+    color: var(--amber-dark);
+    border: 1px solid #FAC775;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .colab-btn:hover { background: #FAC77555; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--gray-hint);
+    border-top: 1px solid var(--gray-border);
+    margin-top: 2rem;
+  }
+  footer a { color: var(--green-dark); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--gray-border); margin: 1rem 0; }
+
+  /* ── TOOLTIP ── */
+  .tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gray-border);
+    color: var(--gray-text);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: help;
+    margin-left: 4px;
+    vertical-align: middle;
+    position: relative;
+  }
+  .tip:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1A1917;
+    color: white;
+    font-size: 11px;
+    font-weight: 400;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    max-width: 220px;
+    white-space: normal;
+    z-index: 200;
+    line-height: 1.5;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+  }
+
+  /* ── PROGRESS FILL ANIMATE ── */
+  @keyframes fillUp { from { width: 0; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-dots">
+    <div class="dot dot-green"></div>
+    <div class="dot dot-blue"></div>
+  </div>
+  <h1>Enzyme Engineering Studio</h1>
+  <span class="nav-badge">DBTL Workflow</span>
+  <span class="nav-credit" style="margin-left:12px;">Bioinformatics Made Easy</span>
+</nav>
+
+<div class="shell">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">AI-Guided Protein Optimization</div>
+    <h2>Improve your enzyme activity<br>using machine learning</h2>
+    <p>This tool guides you through the Design → Build → Test → Learn cycle for enzyme engineering — no coding required. Configure your protein, understand the AI scoring, and get a ready-to-run Google Colab notebook.</p>
+    <div class="hero-pills">
+      <span class="hero-pill">ESM-2 language model</span>
+      <span class="hero-pill">Ridge regression surrogate</span>
+      <span class="hero-pill">4-round DBTL</span>
+      <span class="hero-pill">Singh et al. 2025</span>
+    </div>
+  </div>
+
+  <!-- STEP PROGRESS -->
+  <div class="progress-bar">
+    <button class="step-btn active" onclick="goTo(0,this)" id="sBtn0">
+      <span class="step-num-label">Step 1</span>Your protein
+    </button>
+    <button class="step-btn" onclick="goTo(1,this)" id="sBtn1">
+      <span class="step-num-label">Step 2</span>AI scan
+    </button>
+    <button class="step-btn" onclick="goTo(2,this)" id="sBtn2">
+      <span class="step-num-label">Step 3</span>DBTL cycles
+    </button>
+    <button class="step-btn" onclick="goTo(3,this)" id="sBtn3">
+      <span class="step-num-label">Step 4</span>Results
+    </button>
+    <button class="step-btn" onclick="goTo(4,this)" id="sBtn4">
+      <span class="step-num-label">Step 5</span>Get notebook
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════ PANEL 0 — SETUP ═══════════════════════════════ -->
+  <div class="panel active" id="panel0">
+
+    <div class="alert alert-info">
+      <strong>Welcome!</strong> Start by pasting your protein sequence below. If you don't have one yet, click <em>Load example (AtHMT)</em> to try with a real enzyme from the Singh et al. 2025 study.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Protein sequence</div>
+      <div class="form-row">
+        <label>Paste your sequence in FASTA format
+          <span class="tip" data-tip="FASTA format: first line starts with > and gives the protein name; the lines below contain the amino acid sequence using single-letter codes (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y).">?</span>
+        </label>
+        <textarea id="fastaInput" placeholder=">MyProtein_WT&#10;MVKVYAPASSANMSVGFDVLGAAVTPVDGALL..." spellcheck="false"></textarea>
+        <p class="hint">Only the 20 standard amino acids are supported. Remove any signal peptides or tags if present.</p>
+      </div>
+      <div id="seqPreview" style="display:none;" class="seq-preview">
+        <div class="seq-stats">
+          <div class="seq-stat"><span>Protein name</span><span id="pName">—</span></div>
+          <div class="seq-stat"><span>Length</span><span id="pLen">—</span> aa</div>
+          <div class="seq-stat"><span>Mutations to score</span><span id="pMuts">—</span></div>
+        </div>
+        <div class="seq-mono" id="seqViz"></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-sm" onclick="loadExample()">Load example (AtHMT)</button>
+        <button class="btn btn-sm" onclick="clearSeq()">Clear</button>
+        <button class="btn btn-primary" style="margin-left:auto;" onclick="validateAndNext()">Validate & continue →</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Experiment settings</div>
+      <div class="two-col">
+        <div class="form-row">
+          <label>ESM-2 model size
+            <span class="tip" data-tip="Larger model = slightly better predictions but longer scan time. 650M is the sweet spot for most proteins.">?</span>
+          </label>
+          <select id="modelSel">
+            <option value="35M">35M — fast (good for testing)</option>
+            <option value="650M" selected>650M — recommended</option>
+            <option value="3B">3B — most accurate, slow</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Round 1 library size
+            <span class="tip" data-tip="How many single-mutant variants to build and test in Round 1. 96 = one 96-well plate. 180 = two plates (as used in the Singh et al. paper).">?</span>
+          </label>
+          <select id="libSel">
+            <option value="96">96 variants — 1 plate</option>
+            <option value="180" selected>180 variants — 2 plates</option>
+            <option value="384">384 variants — 4 plates</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Number of DBTL rounds</label>
+          <select id="roundSel">
+            <option value="2">2 rounds</option>
+            <option value="3">3 rounds</option>
+            <option value="4" selected>4 rounds — recommended</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Hardware</label>
+          <select id="hwSel">
+            <option value="gpu">GPU — Colab T4 (free, fast)</option>
+            <option value="cpu">CPU only (slower)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Fitness assay description
+          <span class="tip" data-tip="Describe how you measure enzyme activity. This text will appear as a comment in the notebook for lab records.">?</span>
+        </label>
+        <input type="text" id="assayDesc" placeholder="e.g. HMT activity — fluorescence at 460 nm, normalized to OD600">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ PANEL 1 — SCAN ═══════════════════════════════ -->
+  <div class="panel" id="panel1">
+
+    <div class="card">
+      <div class="card-title">How ESM-2 scores mutations</div>
+      <p style="font-size:13px;color:var(--gray-text);margin-bottom:1rem;line-height:1.7;">
+        ESM-2 is a large language model trained on 250 million protein sequences from nature. It has learned which amino acids tend to appear at each position in proteins. We use this to predict which mutations are likely to be beneficial.
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--green-light);color:var(--green-dark);">1</div>
+          <div>
+            <div class="step-item-title">Mask one position at a time</div>
+            <div class="step-item-desc">The model receives your protein sequence with one amino acid hidden (masked). It predicts what amino acid "should" be there based on evolution.</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--blue-light);color:var(--blue-dark);">2</div>
+          <div>
+            <div class="step-item-title">Calculate ΔlogP score for every substitution</div>
+            <div class="step-item-desc">For each of the 19 possible amino acid substitutions at that position: <strong>score = log P(new AA) − log P(original AA)</strong>. A positive score means the mutation looks more natural to the model.</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);">3</div>
+          <div>
+            <div class="step-item-title">Scan the entire protein</div>
+            <div class="step-item-desc">This is repeated for every position — generating scores for all <span id="scanTotal">—</span> possible single mutations in your protein.</div>
+          </div>
+        </li>
+        <li class="step-item" style="border-bottom:none;">
+          <div class="step-circle" style="background:var(--pink-light);color:var(--pink-dark);">4</div>
+          <div>
+            <div class="step-item-title">Select top mutations for Round 1</div>
+            <div class="step-item-desc">The highest-scoring mutations are selected for experimental testing. These form your Round 1 library.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--gray-border);">
+        <div class="card-title" style="margin:0;">Top 8 predicted mutations — example (AtHMT)</div>
+      </div>
+      <table class="mut-table">
+        <thead>
+          <tr>
+            <th>Rank</th><th>Mutation</th><th>Position</th><th>ΔlogP score</th><th>Round 1?</th>
+          </tr>
+        </thead>
+        <tbody id="mutTbody"></tbody>
+      </table>
+    </div>
+    <p class="hint" style="margin-bottom:1.5rem;">The full scan runs automatically in the Colab notebook. This preview uses simulated scores for illustration.</p>
+
+    <div class="btn-group">
+      <button class="btn" onclick="goTo(0,document.getElementById('sBtn0'))">← Back</button>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="goTo(2,document.getElementById('sBtn2'))">Understand DBTL cycles →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ PANEL 2 — DBTL ═══════════════════════════════ -->
+  <div class="panel" id="panel2">
+
+    <div class="dbtl-grid">
+      <div class="dbtl-box" style="border-color:#9FE1CB;">
+        <div class="dbtl-icon" style="background:var(--green-light);color:var(--green-dark);">D</div>
+        <div class="dbtl-name">Design</div>
+        <div class="dbtl-desc">AI model selects the most promising variants to test next</div>
+      </div>
+      <div class="dbtl-box" style="border-color:#B5D4F4;">
+        <div class="dbtl-icon" style="background:var(--blue-light);color:var(--blue-dark);">B</div>
+        <div class="dbtl-name">Build</div>
+        <div class="dbtl-desc">Construct &amp; express the selected mutant library in the lab</div>
+      </div>
+      <div class="dbtl-box" style="border-color:#FAC775;">
+        <div class="dbtl-icon" style="background:var(--amber-light);color:var(--amber-dark);">T</div>
+        <div class="dbtl-name">Test</div>
+        <div class="dbtl-desc">Measure enzyme activity in 96-well plate assay format</div>
+      </div>
+      <div class="dbtl-box" style="border-color:#F4C0D1;">
+        <div class="dbtl-icon" style="background:var(--pink-light);color:var(--pink-dark);">L</div>
+        <div class="dbtl-name">Learn</div>
+        <div class="dbtl-desc">Ridge regression trains on results to guide the next round</div>
+      </div>
+    </div>
+
+    <div class="round-pills" id="roundPills">
+      <button class="round-pill active" onclick="showRound(1,this)">Round 1</button>
+      <button class="round-pill" onclick="showRound(2,this)">Round 2</button>
+      <button class="round-pill" onclick="showRound(3,this)">Round 3</button>
+      <button class="round-pill" onclick="showRound(4,this)">Round 4</button>
+    </div>
+
+    <div id="roundCard"></div>
+
+    <div class="btn-group">
+      <button class="btn" onclick="goTo(1,document.getElementById('sBtn1'))">← Back</button>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="goTo(3,document.getElementById('sBtn3'))">See expected results →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ PANEL 3 — RESULTS ═══════════════════════════════ -->
+  <div class="panel" id="panel3">
+
+    <div class="alert alert-success">
+      Expected outcomes based on the Singh et al. 2025 (Nature Communications) AtHMT case study after 4 complete DBTL rounds.
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-val" style="color:var(--green);">2.4×</div><div class="metric-label">Typical improvement</div></div>
+      <div class="metric"><div class="metric-val">~720</div><div class="metric-label">Total variants tested</div></div>
+      <div class="metric"><div class="metric-val">4</div><div class="metric-label">DBTL cycles</div></div>
+      <div class="metric"><div class="metric-val">0.88</div><div class="metric-label">Final model ρ</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fitness improvement across rounds</div>
+      <div class="chart-wrap">
+        <svg width="100%" viewBox="0 0 500 180" id="fitChart"></svg>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-text);">
+          <div style="width:14px;height:3px;background:var(--green);border-radius:2px;"></div>Median fitness
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-text);">
+          <div style="width:14px;height:3px;background:var(--blue);border-radius:2px;border-top:2px dashed var(--blue);"></div>Best variant
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Best predicted variant</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <span class="badge badge-pink">Quadruple mutant</span>
+        <code>V140T / L101I / E206D / S63N</code>
+      </div>
+      <div style="font-size:13px;color:var(--gray-text);margin-bottom:12px;">Fitness relative to wild-type:</div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span style="color:var(--gray-text);">Wild-type</span><span style="font-weight:500;">1.0×</span></div>
+        <div style="height:8px;background:var(--gray-border);border-radius:4px;overflow:hidden;"><div style="height:8px;width:41%;background:#D3D1C7;border-radius:4px;animation:fillUp 0.8s ease;"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span style="color:var(--gray-text);">Best quadruple mutant</span><span style="font-weight:500;color:var(--green-dark);">2.4×</span></div>
+        <div style="height:8px;background:var(--gray-border);border-radius:4px;overflow:hidden;"><div style="height:8px;width:93%;background:var(--green);border-radius:4px;animation:fillUp 1s ease;"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Surrogate model performance (Ridge regression)</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center;">
+        <div><div style="font-size:14px;font-weight:600;">R1</div><div style="font-size:11px;color:var(--gray-hint);">ESM-2 only</div><div style="font-size:13px;color:var(--gray-text);margin-top:3px;">—</div></div>
+        <div><div style="font-size:14px;font-weight:600;">R2</div><div style="font-size:11px;color:var(--gray-hint);">Spearman ρ</div><div style="font-size:14px;color:var(--green);font-weight:500;margin-top:3px;">0.72</div></div>
+        <div><div style="font-size:14px;font-weight:600;">R3</div><div style="font-size:11px;color:var(--gray-hint);">Spearman ρ</div><div style="font-size:14px;color:var(--green);font-weight:500;margin-top:3px;">0.81</div></div>
+        <div><div style="font-size:14px;font-weight:600;">R4</div><div style="font-size:11px;color:var(--gray-hint);">Spearman ρ</div><div style="font-size:14px;color:var(--green);font-weight:500;margin-top:3px;">0.88</div></div>
+      </div>
+      <p class="hint" style="margin-top:10px;">Spearman ρ measures how well the model ranks variants by predicted fitness. 1.0 = perfect rank correlation. The model improves each round as more experimental data is added.</p>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn" onclick="goTo(2,document.getElementById('sBtn2'))">← Back</button>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="goTo(4,document.getElementById('sBtn4'))">Get your notebook →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ PANEL 4 — GET NOTEBOOK ═══════════════════════════════ -->
+  <div class="panel" id="panel4">
+
+    <div class="card">
+      <div class="card-title">Your configured notebook</div>
+      <div id="summaryRows"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">How to run in Google Colab — step by step</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">1</div>
+          <div>
+            <div class="step-item-title">Open Google Colab</div>
+            <div class="step-item-desc">Go to <a href="https://colab.research.google.com" target="_blank" style="color:var(--green-dark);">colab.research.google.com</a> and sign in with your Google account (free).</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">2</div>
+          <div>
+            <div class="step-item-title">Upload the notebook</div>
+            <div class="step-item-desc">Click <strong>File → Upload notebook</strong> and select the <code>.ipynb</code> file you downloaded.</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">3</div>
+          <div>
+            <div class="step-item-title">Enable free GPU</div>
+            <div class="step-item-desc">Click <strong>Runtime → Change runtime type → Hardware accelerator → GPU (T4)</strong>. This is free and makes ESM-2 ~10× faster.</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">4</div>
+          <div>
+            <div class="step-item-title">Run all cells</div>
+            <div class="step-item-desc">Click <strong>Runtime → Run all</strong>. The first cell installs packages (~2 min). The ESM-2 scan takes 10–30 min depending on protein length and GPU.</div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">5</div>
+          <div>
+            <div class="step-item-title">Upload your Round 1 assay data</div>
+            <div class="step-item-desc">After your lab tests the Round 1 variants, create a CSV file and upload it to the Round 2 cell. See the format below.</div>
+          </div>
+        </li>
+        <li class="step-item" style="border-bottom:none;">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">6</div>
+          <div>
+            <div class="step-item-title">Repeat for Rounds 2–4</div>
+            <div class="step-item-desc">After each experimental round, upload the fitness data CSV. The notebook trains the Ridge model and selects the next library automatically.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">CSV format for your experimental data</div>
+      <p style="font-size:13px;color:var(--gray-text);margin-bottom:10px;">After each round of experiments, save your activity measurements in this format:</p>
+      <div class="code-box">
+        <span class="code-comment"># One row per variant tested</span><br>
+        <span class="code-key">mutations</span>,<span class="code-key">fitness</span><br>
+        WT,1.000<br>
+        V140T,1.412<br>
+        L101I,1.289<br>
+        E206D,1.198<br>
+        S63N,0.874<br>
+        <span class="code-comment"># Multi-site mutants use colon notation:</span><br>
+        V140T:L101I,1.891<br>
+        V140T:L101I:E206D,2.173
+      </div>
+      <p class="hint" style="margin-top:10px;"><strong>Important:</strong> Fitness must be normalized to wild-type. If your WT activity is 50 nmol/min, a variant with 72 nmol/min has fitness = 72/50 = 1.44.</p>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+      <a class="colab-btn" href="https://colab.research.google.com" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.2" fill="none" stroke="#EF9F27" stroke-width="1.2"/><polygon points="6.5,5 11.5,8 6.5,11" fill="#EF9F27"/></svg>
+        Open Google Colab
+      </a>
+      <a class="colab-btn" href="https://github.com/Zhao-Group/closed-loop" target="_blank" style="background:var(--blue-light);color:var(--blue-dark);border-color:#B5D4F4;">
+        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1C4.13 1 1 4.13 1 8c0 3.08 2 5.7 4.75 6.63.35.06.48-.15.48-.33v-1.16c-1.94.42-2.35-.94-2.35-.94-.32-.81-.78-1.02-.78-1.02-.63-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.62 1.06 1.63.75 2.03.58.06-.45.24-.75.44-.92-1.55-.18-3.18-.77-3.18-3.44 0-.76.27-1.38.72-1.87-.07-.18-.31-.88.07-1.84 0 0 .58-.19 1.91.71A6.63 6.63 0 018 4.92c.59 0 1.18.08 1.73.23 1.32-.9 1.9-.71 1.9-.71.38.96.14 1.66.07 1.84.45.49.72 1.11.72 1.87 0 2.68-1.63 3.26-3.19 3.43.25.22.47.64.47 1.3v1.92c0 .19.12.4.48.33A7.003 7.003 0 0015 8C15 4.13 11.87 1 8 1z" fill="currentColor"/></svg>
+        Zhao-Group repo
+      </a>
+      <button class="btn btn-primary" onclick="downloadConfig()">Download config JSON</button>
+    </div>
+    <div id="downloadMsg" style="display:none;" class="alert alert-success" style="margin-top:1rem;"></div>
+
+  </div>
+
+</div><!-- /shell -->
+
+<footer>
+  <p>
+    Built for <a href="https://jitendra-kul.github.io/Bioinformatics-made-easy/" target="_blank">Bioinformatics Made Easy</a> ·
+    Based on <a href="https://doi.org/10.1038/s41467-025-56737-2" target="_blank">Singh et al. 2025, Nature Communications</a> ·
+    <a href="https://github.com/Zhao-Group/closed-loop" target="_blank">Zhao-Group/closed-loop</a>
+  </p>
+</footer>
+
+<script>
+const EXAMPLE_FASTA = `>AtHMT
+MAQVDAAIKRLVEDSVQPLFARVSSQVRSVSGMQTAAQDSLRKIEEVRSQVSAALGKTDGSLVKIINNAIEQAVDELKTVPKDEAKRGRGLVEELKKLGKQLQQFSEEAEQVLSAALGFKNEEGSVDGLAFLAGRDNSDLENILDEAMQQLFQTRERIKAIASRLSEFLRDVTGDDFTFEQDTISSRDFSQNRAEQTEKLLKQIENDQLNSPFGTLIEASIKASLEEDQKAQHEVSAAHFAKNRLAAISNKNLQKMAALGQLKFDEGIPQEVMDNLINDVKGEGDVKGAEIGDIKNQLSSLNLALQQLAQTREQFQARLDAILNASLNEEARANPLQAKVSQALTGQTNLGIKQSTADAAIQISQSQNASAAQKLAAQNVQAKLADAQGLNQLSKEMSQLQSGASEGKSSAFGMVQKMLDSQQQNALQKIAQANKTAPQNAQLKAAQLQLEAQAKLAQALTAAAQKLEAQAQNMQQVQNMMQASRQQLDQQIKAQATQQMQAQVQNLQAKLQDDLKLQELQNQLTAKAQHMAAKLQNKLANMGSQKQMAQSQNQMSQLQQALQAQAAKLQQRQLQAQLQQVQQAQAQHQKQLAHEFHAQLTAQIKGAQQQLEQLKQQLQQQMQQVNAQIAQQQNQLQHQQANQQLQLMHAQQQQLQAQRHQLQMQREQQHLQMQRQANMLQAQAQIQELKRMLAQNQQQRQLAEELQRQREELKQLQNQAQQIAALQKQLDAQNAQQLEAQIAALKQRLDQAQVELQNRLTQQQKQLINQLPQQKQQLDQKVNQQLTQQQNQLQAQIQQVAQHQKAQAAQLQAMQQNQKQLQAQIQNM`;
+
+const SAMPLE_MUTS = [
+  {mut:"V140T",pos:140,score:0.94},
+  {mut:"L101I",pos:101,score:0.88},
+  {mut:"E206D",pos:206,score:0.82},
+  {mut:"S63N",pos:63,score:0.78},
+  {mut:"A212T",pos:212,score:0.71},
+  {mut:"K88R",pos:88,score:0.65},
+  {mut:"N175S",pos:175,score:0.61},
+  {mut:"T300A",pos:300,score:0.54},
+];
+
+const ROUNDS = {
+  1:{ badge:"badge-blue", label:"Single mutations", vars:180, src:"ESM-2 ΔlogP ranking",
+      desc:"All 180 top-scoring single mutants from the ESM-2 scan are built (two 96-well plates) and experimentally assayed. This gives the first real fitness measurements.",
+      best:"V140T (1.41×)", learn:"Ridge regression trained on 180 data points" },
+  2:{ badge:"badge-green", label:"Double mutations", vars:180, src:"Ridge model (trained on R1)",
+      desc:"The top 10 best singles from Round 1 are combined pairwise with the top 30 singles from ESM-2. Ridge model predicts fitness — only top 180 doubles are tested.",
+      best:"V140T:L101I (1.89×)", learn:"Ridge retrained on R1+R2 data — Spearman ρ = 0.72" },
+  3:{ badge:"badge-amber", label:"Triple mutations", vars:180, src:"Ridge model (trained on R1+R2)",
+      desc:"Best doubles from Round 2 are extended by one more mutation site. The surrogate model is now trained on 360 points and navigates the triple-mutant space well.",
+      best:"V140T:L101I:E206D (2.17×)", learn:"Ridge retrained on R1+R2+R3 — Spearman ρ = 0.81" },
+  4:{ badge:"badge-pink", label:"Quadruple mutations", vars:180, src:"Ridge model (trained on R1+R2+R3)",
+      desc:"Best triples are extended to quadruple mutants. With 540 training points the model is highly predictive. Top quadruples show the largest fitness gains.",
+      best:"V140T:L101I:E206D:S63N (2.4×)", learn:"Final model Spearman ρ = 0.88" },
+};
+
+let currentPanel = 0;
+
+function goTo(n, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel'+n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPanel = n;
+  if (n === 3) drawChart();
+  if (n === 4) renderSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function loadExample() {
+  document.getElementById('fastaInput').value = EXAMPLE_FASTA;
+  validateSeq();
+}
+
+function clearSeq() {
+  document.getElementById('fastaInput').value = '';
+  document.getElementById('seqPreview').style.display = 'none';
+}
+
+function parseSeq() {
+  const raw = document.getElementById('fastaInput').value.trim();
+  if (!raw) return null;
+  const lines = raw.split('\n');
+  const name = lines[0].startsWith('>') ? lines[0].slice(1).trim() : 'Unknown';
+  const seq = lines.filter(l => !l.startsWith('>')).join('').replace(/\s/g,'').toUpperCase();
+  return {name, seq};
+}
+
+function validateSeq() {
+  const p = parseSeq();
+  if (!p) return false;
+  const valid = new Set('ACDEFGHIKLMNPQRSTVWY');
+  const bad = [...p.seq].filter(c => !valid.has(c));
+  if (bad.length) { alert('Invalid amino acids found: ' + [...new Set(bad)].join(', ')); return false; }
+  document.getElementById('pName').textContent = p.name;
+  document.getElementById('pLen').textContent = p.seq.length.toLocaleString();
+  document.getElementById('pMuts').textContent = (p.seq.length * 19).toLocaleString();
+  document.getElementById('scanTotal').textContent = (p.seq.length * 19).toLocaleString();
+  const hotPos = new Set([63,88,101,140,175,206,212,300]);
+  let html = '';
+  const show = Math.min(p.seq.length, 150);
+  for (let i=0;i<show;i++) {
+    html += hotPos.has(i+1) ? `<span class="seq-hot">${p.seq[i]}</span>` : p.seq[i];
+    if ((i+1)%10===0) html+=' ';
+  }
+  if (p.seq.length > 150) html += `<span style="color:var(--gray-hint);">...+${p.seq.length-150} aa</span>`;
+  document.getElementById('seqViz').innerHTML = html;
+  document.getElementById('seqPreview').style.display='block';
+  renderMutTable();
+  return true;
+}
+
+function validateAndNext() {
+  if (!parseSeq()) { alert('Please paste a protein sequence first.'); return; }
+  if (!validateSeq()) return;
+  document.getElementById('sBtn0').classList.add('done');
+  goTo(1, document.getElementById('sBtn1'));
+}
+
+function renderMutTable() {
+  const max = SAMPLE_MUTS[0].score;
+  document.getElementById('mutTbody').innerHTML = SAMPLE_MUTS.map((m,i) => `
+    <tr>
+      <td style="color:var(--gray-hint);font-size:12px;">#${i+1}</td>
+      <td><code>${m.mut}</code></td>
+      <td style="color:var(--gray-text);font-size:12px;">Position ${m.pos}</td>
+      <td>
+        <span class="bar-wrap"><span class="bar-fill" style="width:${(m.score/max*100).toFixed(0)}%"></span></span>
+        <span style="font-size:13px;font-weight:500;">${m.score.toFixed(2)}</span>
+      </td>
+      <td><span class="badge ${i<3?'badge-green':'badge-gray'}">${i<3?'Top pick':'Selected'}</span></td>
+    </tr>`).join('');
+}
+
+function showRound(n, el) {
+  document.querySelectorAll('.round-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  const d = ROUNDS[n];
+  document.getElementById('roundCard').innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="font-size:15px;font-weight:600;">Round ${n}</span>
+        <span class="badge ${d.badge}">${d.label}</span>
+      </div>
+      <p style="font-size:13px;color:var(--gray-text);line-height:1.7;margin-bottom:14px;">${d.desc}</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:var(--gray-bg);border-radius:var(--radius-sm);padding:12px;">
+          <div style="font-size:11px;color:var(--gray-hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Variants tested</div>
+          <div style="font-size:22px;font-weight:600;">${d.vars}</div>
+        </div>
+        <div style="background:var(--gray-bg);border-radius:var(--radius-sm);padding:12px;">
+          <div style="font-size:11px;color:var(--gray-hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Source</div>
+          <div style="font-size:13px;font-weight:500;line-height:1.4;">${d.src}</div>
+        </div>
+      </div>
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--green-light);color:var(--green-dark);font-weight:700;">D</div>
+          <div><div class="step-item-title">Design</div><div class="step-item-desc">${n===1?'ESM-2 ranks all single mutations by ΔlogP. Top '+d.vars+' selected for synthesis.':'Ridge surrogate model predicts fitness of combinatorial variants. Top '+d.vars+' selected.'}</div></div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--blue-light);color:var(--blue-dark);font-weight:700;">B</div>
+          <div><div class="step-item-title">Build</div><div class="step-item-desc">Site-directed mutagenesis or gene synthesis of ${d.vars} variants. Express in <em>E. coli</em> or yeast. Prepare crude lysate in 96-well format.</div></div>
+        </li>
+        <li class="step-item">
+          <div class="step-circle" style="background:var(--amber-light);color:var(--amber-dark);font-weight:700;">T</div>
+          <div><div class="step-item-title">Test</div><div class="step-item-desc">Activity assay in 96-well plates. Normalize to wild-type. Best variant this round: <code>${d.best}</code></div></div>
+        </li>
+        <li class="step-item" style="border-bottom:none;">
+          <div class="step-circle" style="background:var(--pink-light);color:var(--pink-dark);font-weight:700;">L</div>
+          <div><div class="step-item-title">Learn</div><div class="step-item-desc">${d.learn}</div></div>
+        </li>
+      </ul>
+    </div>`;
+}
+
+function drawChart() {
+  const svg = document.getElementById('fitChart');
+  if (!svg) return;
+  const W=500,H=180,pl=44,pr=16,pt=16,pb=30;
+  const cW=W-pl-pr, cH=H-pt-pb;
+  const medians=[0.9,1.1,1.4,1.75];
+  const bests=[1.41,1.89,2.17,2.4];
+  const minV=0.7, maxV=2.6;
+  const sx=i=>pl+i*(cW/3);
+  const sy=v=>pt+cH-((v-minV)/(maxV-minV))*cH;
+  const ticks=[1.0,1.5,2.0,2.5];
+  let out='';
+  ticks.forEach(v=>{
+    out+=`<line x1="${pl}" y1="${sy(v).toFixed(1)}" x2="${W-pr}" y2="${sy(v).toFixed(1)}" stroke="#E4E2DA" stroke-width="0.8"/>`;
+    out+=`<text x="${pl-6}" y="${sy(v)+4}" text-anchor="end" font-size="10" fill="#A09E99">${v.toFixed(1)}</text>`;
+  });
+  ['R1','R2','R3','R4'].forEach((l,i)=>{
+    out+=`<text x="${sx(i)}" y="${H-6}" text-anchor="middle" font-size="11" fill="#6B6A65">${l}</text>`;
+  });
+  let mp='',bp='';
+  medians.forEach((v,i)=>{mp+=(i?'L':'M')+`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`;});
+  bests.forEach((v,i)=>{bp+=(i?'L':'M')+`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`;});
+  out+=`<path d="${mp}" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>`;
+  out+=`<path d="${bp}" fill="none" stroke="#378ADD" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6,3"/>`;
+  medians.forEach((v,i)=>{out+=`<circle cx="${sx(i)}" cy="${sy(v)}" r="4.5" fill="#1D9E75"/>`;});
+  bests.forEach((v,i)=>{out+=`<circle cx="${sx(i)}" cy="${sy(v)}" r="4.5" fill="#378ADD"/>`;});
+  svg.innerHTML=out;
+}
+
+function renderSummary() {
+  const p = parseSeq();
+  const modelMap={'35M':'esm2_t12_35M_UR50D','650M':'esm2_t33_650M_UR50D','3B':'esm2_t36_3B_UR50D'};
+  const rows=[
+    ['Protein', p ? `${p.name} (${p.seq.length} aa)` : 'Not entered yet'],
+    ['ESM-2 model', modelMap[document.getElementById('modelSel').value]],
+    ['Library size', document.getElementById('libSel').value + ' variants per round'],
+    ['DBTL rounds', document.getElementById('roundSel').value],
+    ['Hardware', document.getElementById('hwSel').value === 'gpu' ? 'GPU — Colab T4 (free)' : 'CPU only'],
+    ['Fitness assay', document.getElementById('assayDesc').value || 'Not specified'],
+  ];
+  document.getElementById('summaryRows').innerHTML = rows.map(([k,v])=>`
+    <div class="summary-row">
+      <div class="summary-dot"></div>
+      <div class="summary-key">${k}</div>
+      <div class="summary-val">${v}</div>
+    </div>`).join('');
+}
+
+function downloadConfig() {
+  const p = parseSeq();
+  const cfg = {
+    protein_name: p ? p.name : 'unknown',
+    sequence: p ? p.seq : '',
+    esm2_model: document.getElementById('modelSel').value,
+    library_size: parseInt(document.getElementById('libSel').value),
+    dbtl_rounds: parseInt(document.getElementById('roundSel').value),
+    hardware: document.getElementById('hwSel').value,
+    fitness_assay: document.getElementById('assayDesc').value,
+    generated_by: 'Enzyme Engineering Studio — Bioinformatics Made Easy',
+    reference: 'Singh et al. 2025, Nature Communications'
+  };
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dbtl_config.json'; a.click();
+  URL.revokeObjectURL(url);
+  const msg = document.getElementById('downloadMsg');
+  msg.textContent = 'Config downloaded! Share this file with your students — they can load it into the Colab notebook.';
+  msg.style.display = 'block';
+}
+
+renderMutTable();
+showRound(1, document.querySelector('.round-pill'));
+</script>
+</body>
+</html>
